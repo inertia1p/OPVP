@@ -101,7 +101,7 @@ def load_data(unit="全市"):
     
     # 2. top_df: 最新账期的各集团客户排名 (用于图 1-4)
     # 文件路径：K:\Overdue Payment Visualization Platform\OPVP\历年汇总\2025-2026集团汇总.xlsx
-    GROUP_DATA_FILE = r"K:\Overdue Payment Visualization Platform\OPVP\历年汇总\2025-2026集团汇总.xlsx"
+    GROUP_DATA_FILE = r"历年汇总\2025-2026集团汇总.xlsx"
     if not os.path.exists(GROUP_DATA_FILE):
         st.error(f"未找到集团客户数据文件: {GROUP_DATA_FILE}")
         top_df = pd.DataFrame(columns=["客户", "责任单元", "累计欠费", "累计坏账", "信用减值", "一年以上账龄", "备注"])
@@ -368,7 +368,7 @@ if module == "模块1: 抓手":
         st.dataframe(df_workflow, use_container_width=True, hide_index=True)
 
         # 添加文件下载功能
-        doc_path = r"K:\Overdue Payment Visualization Platform\OPVP\关于加强政企线应收账款管控 明确催缴动作要求的通知.docx"
+        doc_path = r"关于加强政企线应收账款管控 明确催缴动作要求的通知.docx"
         if os.path.exists(doc_path):
             with open(doc_path, "rb") as f:
                 btn = st.download_button(
