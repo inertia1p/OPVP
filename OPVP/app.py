@@ -15,9 +15,17 @@ import requests
 import json
 from openai import OpenAI
 
+# 页面配置
+st.set_page_config(page_title="公司欠费数据可视化平台", layout="wide", initial_sidebar_state="collapsed")
+
 # 登录验证函数
 def check_password():
     """如果用户输入了正确的密码，则返回 True。"""
+    # 检查 st.secrets 是否已配置，如果没有配置则提示开发者
+    if "passwords" not in st.secrets:
+        st.error("⚠️ 未在 Streamlit Secrets 中配置密码。如果是本地运行，请确保 `.streamlit/secrets.toml` 存在。")
+        st.stop()
+
     def password_entered():
         """检查用户输入的密码是否正确。"""
         if st.session_state["password"] == st.secrets["passwords"]["admin"]:
@@ -60,9 +68,6 @@ def check_password():
         # 密码正确
         return True
 
-# 页面配置
-st.set_page_config(page_title="公司欠费数据可视化平台", layout="wide", initial_sidebar_state="collapsed")
-
 # 身份验证
 if check_password():
 
@@ -100,8 +105,8 @@ def load_data(unit="全市"):
     latest_unit_data = filtered_df[filtered_df['账期'] == latest_cycle_unit]
     
     # 2. top_df: 最新账期的各集团客户排名 (用于图 1-4)
-    # 文件路径：K:\Overdue Payment Visualization Platform\OPVP\历年汇总\2025-2026集团汇总.xlsx
-    GROUP_DATA_FILE = r"历年汇总\2025-2026集团汇总.xlsx"
+    # 使用相对路径并统一使用正斜杠以兼容 Linux/Streamlit Cloud
+    GROUP_DATA_FILE = "历年汇总/2025-2026集团汇总.xlsx"
     if not os.path.exists(GROUP_DATA_FILE):
         st.error(f"未找到集团客户数据文件: {GROUP_DATA_FILE}")
         top_df = pd.DataFrame(columns=["客户", "责任单元", "累计欠费", "累计坏账", "信用减值", "一年以上账龄", "备注"])
@@ -242,7 +247,8 @@ if module == "模块1: 抓手":
 
     with col_main:
         # 统一 TOPN 输入控件
-        top_n = st.number_input("查询 Top N 客户", min_value=1, max_value=len(top_df), value=10, step=1, key="topn_input")
+        max_top = len(top_df) if len(top_df) > 0 else 10
+        top_n = st.number_input("查询 Top N 客户", min_value=1, max_value=max_top, value=min(10, max_top), step=1, key="topn_input")
 
         # 图1: 累计欠费的分账龄欠费堆叠（堆叠条形图，按客户展示各账龄区间欠费构成）
         st.subheader("图1: 累计欠费的分账龄欠费堆叠")
@@ -585,11 +591,8 @@ elif module == "模块3: AI 风险评价":
     """
 
     # 3. 使用 OpenAI 官方 SDK 方式接入 DeepSeek 免费模型
-    # 从 st.secrets 获取 API 密钥
-    try:
-        deepseek_api_key = st.secrets["deepseek_api_key"]
-    except:
-        deepseek_api_key = None
+    # 从 st.secrets 安全获取 API 密钥
+    deepseek_api_key = st.secrets.get("deepseek_api_key")
         
     # 初始化 DeepSeek 客户端
     client = OpenAI(
